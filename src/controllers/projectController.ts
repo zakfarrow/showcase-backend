@@ -14,7 +14,7 @@ export const getProjects = async (
 ) => {
   try {
     const rows = await db.select().from(projects);
-    res.json({ projects: rows });
+    res.json(rows);
   } catch (error) {
     next(error);
   }
@@ -36,7 +36,7 @@ export const createProject = async (
     }
 
     const [row] = await db.insert(projects).values(parsed.data).returning();
-    res.json({ project: row });
+    res.json(row);
   } catch (error) {
     next(error);
   }
@@ -60,7 +60,7 @@ export const getProjectById = async (
       throw new HttpError(HttpStatus.NOT_FOUND, "Project not found");
     }
 
-    res.json({ project: row });
+    res.json(row);
   } catch (error) {
     next(error);
   }
@@ -88,7 +88,7 @@ export const createProjectRepoLink = async (
       .onConflictDoNothing()
       .returning();
 
-    res.json({ projectToRepo: row });
+    res.json(row);
   } catch (error) {
     next(error);
   }
@@ -118,7 +118,7 @@ export const getProjectRepoLinksById = async (
       throw new HttpError(HttpStatus.NOT_FOUND, "Project not found");
     }
 
-    res.json({ projectRepoLinks: rows });
+    res.json(rows);
   } catch (error) {
     next(error);
   }

@@ -13,8 +13,26 @@ export const getProjects = async (
   next: NextFunction,
 ) => {
   try {
-    const rows = await db.select().from(projects);
-    res.json(rows);
+    const projectsRows = await db.query.projects.findMany({
+      with: {
+        projectsToRepos: {
+          with: {
+            repo: true,
+          },
+        },
+      },
+    });
+
+    if (!projectsRows) {
+      throw new HttpError(HttpStatus.NOT_FOUND, "Project not found");
+    }
+
+    res.json(
+      projectsRows.map(({ projectsToRepos, ...rest }) => ({
+        ...rest,
+        repos: projectsToRepos.map(({ repo }) => repo),
+      })),
+    );
   } catch (error) {
     next(error);
   }
@@ -54,13 +72,26 @@ export const getProjectById = async (
       throw new HttpError(HttpStatus.BAD_REQUEST, "id must be a valid integer");
     }
 
-    const [row] = await db.select().from(projects).where(eq(projects.id, id));
+    const project = await db.query.projects.findFirst({
+      where: eq(projects.id, id),
+      with: {
+        projectsToRepos: {
+          with: {
+            repo: true,
+          },
+        },
+      },
+    });
 
-    if (!row) {
+    if (!project) {
       throw new HttpError(HttpStatus.NOT_FOUND, "Project not found");
     }
 
-    res.json(row);
+    const { projectsToRepos, ...rest } = project;
+    res.json({
+      ...rest,
+      repos: projectsToRepos.map((link) => link.repo),
+    });
   } catch (error) {
     next(error);
   }
@@ -113,10 +144,6 @@ export const getProjectRepoLinksById = async (
       .select()
       .from(projectsToRepos)
       .where(eq(projectsToRepos.projectId, projectId));
-
-    if (!rows.length) {
-      throw new HttpError(HttpStatus.NOT_FOUND, "Project not found");
-    }
 
     res.json(rows);
   } catch (error) {

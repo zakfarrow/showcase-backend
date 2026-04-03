@@ -7,6 +7,7 @@ import {
   integer,
   primaryKey,
 } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
@@ -45,3 +46,22 @@ export const projectsToRepos = pgTable(
   },
   (t) => [primaryKey({ columns: [t.projectId, t.repoId] })],
 );
+
+export const projectsRelations = relations(projects, ({ many }) => ({
+  projectsToRepos: many(projectsToRepos),
+}));
+
+export const reposRelations = relations(repos, ({ many }) => ({
+  projectsToRepos: many(projectsToRepos),
+}));
+
+export const projectsToReposRelations = relations(projectsToRepos, ({ one }) => ({
+  project: one(projects, {
+    fields: [projectsToRepos.projectId],
+    references: [projects.id],
+  }),
+  repo: one(repos, {
+    fields: [projectsToRepos.repoId],
+    references: [repos.id],
+  }),
+}));

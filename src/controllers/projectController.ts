@@ -60,6 +60,39 @@ export const createProject = async (
   }
 };
 
+export const updateProject = async (
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const id = parseInt(req.params.id);
+
+    if (isNaN(id)) {
+      throw new HttpError(HttpStatus.BAD_REQUEST, "id must be a valid integer");
+    }
+
+    const values = req.body;
+
+    const project = await db
+      .update(projects)
+      .set({
+        name: values.name,
+        description: values.description,
+        status: values.status,
+      })
+      .where(eq(projects.id, id));
+
+    if (!project) {
+      throw new HttpError(HttpStatus.NOT_FOUND, "Project not found");
+    }
+
+    res.json(project);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getProjectById = async (
   req: Request<{ id: string }>,
   res: Response,

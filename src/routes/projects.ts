@@ -5,6 +5,7 @@ import {
   createProject,
   createProjectRepoLink,
   getProjectRepoLinksById,
+  updateProject,
 } from "@src/controllers/projectController";
 
 const router = Router();
@@ -13,6 +14,7 @@ router.get("/", getProjects);
 router.post("/", createProject);
 
 router.get("/:id", getProjectById);
+router.patch("/:id", updateProject);
 router.post("/:projectId/repos/:repoId", createProjectRepoLink);
 router.get("/:projectId/repos/", getProjectRepoLinksById);
 
